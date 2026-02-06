@@ -48,15 +48,6 @@
       border-radius:10px;
       font-weight:700;
     }
-    .cellSelect{
-      width:100%;
-      padding:8px;
-      border:1px solid #d1d5db;
-      border-radius:10px;
-      font-weight:800;
-      background:#fff;
-    }
-
     .money { font-variant-numeric: tabular-nums; }
   </style>
 </head>
@@ -132,10 +123,17 @@
       </div>
     </div>
 
-    <button class="secondary" id="btnLimpiarDia">Borrar todo del día</button>
+    <!-- ✅ NUEVO: PDF -->
+    <button class="secondary" id="btnPDF">Generar PDF del resumen</button>
+
+    <button class="danger" id="btnLimpiarDia">Borrar todo del día</button>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+  <!-- ✅ jsPDF + AutoTable -->
+  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.4/dist/jspdf.plugin.autotable.min.js"></script>
 
   <script>
     const $ = (s)=>document.querySelector(s);
@@ -163,8 +161,6 @@
     // ======================
     // Datos (LOCAL por fecha)
     // ======================
-    // Estructura guardada en localStorage:
-    // chileria_ventas_v1 = { "YYYY-MM-DD": [ {id, producto, kg, precio, created_at} ] }
     const LS_KEY = 'chileria_ventas_v1';
     let ventas = [];
 
@@ -195,7 +191,6 @@
       const row = ventas.find(x=>x.id===id);
       if(!row) return;
 
-      // solo una fila en edición
       for(const [k,v] of editState.entries()){
         if(v.editing && k !== id){
           cancelEdit(k);
@@ -242,12 +237,7 @@
 
       const idx = ventas.findIndex(x=>x.id===id);
       if(idx>=0){
-        ventas[idx] = {
-          ...ventas[idx],
-          producto,
-          kg,
-          precio
-        };
+        ventas[idx] = { ...ventas[idx], producto, kg, precio };
       }
 
       editState.delete(id);
@@ -343,7 +333,6 @@
 
       const cKg = document.getElementById('chartKg');
       const cMo = document.getElementById('chartMoney');
-
       if(!cKg || !cMo) return;
 
       if(chartKg){
@@ -424,7 +413,6 @@
       ventas.unshift(row);
       saveDia(f, ventas);
 
-      // limpiar campos
       $('#producto').value = '';
       $('#cantidad').value = '';
       $('#precio').value = '';
@@ -451,6 +439,72 @@
     }
 
     // ======================
+    // ✅ PDF del resumen
+    // ======================
+    function generarPDFResumen(){
+      const f = fechaSeleccionada();
+      const rows = buildResumen();
+
+      const totalKg = rows.reduce((acc,r)=>acc + num(r.kg), 0);
+      const totalMoney = rows.reduce((acc,r)=>acc + num(r.precio), 0);
+
+      // jsPDF UMD
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF({ orientation:'p', unit:'mm', format:'a4' });
+
+      // Header
+      doc.setFont('helvetica','bold');
+      doc.setFontSize(16);
+      doc.text('Resumen de Ventas — Chilería', 14, 16);
+
+      doc.setFontSize(11);
+      doc.setFont('helvetica','normal');
+      doc.text(`Fecha: ${f}`, 14, 24);
+
+      doc.setFont('helvetica','bold');
+      doc.text(`Total kg: ${totalKg.toFixed(3)} kg`, 14, 31);
+      doc.text(`Total $: ${money(totalMoney)}`, 110, 31);
+
+      // Tabla
+      const body = rows.map(r=>[
+        String(r.producto),
+        r.kg.toFixed(3),
+        money(r.precio)
+      ]);
+
+      doc.autoTable({
+        startY: 36,
+        head: [['Producto','Total (kg)','Total ($)']],
+        body,
+        styles: { fontSize: 10, cellPadding: 2.2 },
+        headStyles: { fillColor: [185, 28, 28] },
+        columnStyles: {
+          0: { cellWidth: 95 },
+          1: { halign: 'right', cellWidth: 35 },
+          2: { halign: 'right', cellWidth: 45 }
+        },
+        didDrawPage: (data) => {
+          // Footer
+          const pageHeight = doc.internal.pageSize.height || 297;
+          doc.setFontSize(9);
+          doc.setTextColor(120);
+          doc.text(`Generado: ${new Date().toLocaleString('es-MX')}`, 14, pageHeight - 10);
+          doc.setTextColor(0);
+        }
+      });
+
+      // Espacio firma
+      const y = doc.lastAutoTable?.finalY ? doc.lastAutoTable.finalY + 14 : 260;
+      doc.setFontSize(11);
+      doc.setFont('helvetica','normal');
+      doc.text('Firma / Responsable:', 14, Math.min(y, 270));
+      doc.line(55, Math.min(y, 270), 190, Math.min(y, 270));
+
+      const filename = `Resumen_Chileria_${f}.pdf`;
+      doc.save(filename);
+    }
+
+    // ======================
     // Arranque
     // ======================
     document.getElementById("fecha").value = todayISODate();
@@ -459,6 +513,7 @@
     $('#fecha').addEventListener('change', cargarDia);
     $('#btnAgregar').addEventListener('click', agregarVenta);
     $('#btnLimpiarDia').addEventListener('click', limpiarDia);
+    $('#btnPDF').addEventListener('click', generarPDFResumen);
 
     // Exponer para onclick inline
     window.startEdit = startEdit;
