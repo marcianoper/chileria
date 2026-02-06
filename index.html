@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Sistema Chilería — Registro Diario</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <style>
+    body { font-family: sans-serif; background:#f2f2f2; padding:20px; }
+    .container { background:#fff; padding:30px; border-radius:10px; max-width:900px; margin:auto; }
+    h1 { color:#b91c1c; display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+    label { display:block; margin-top:15px; font-weight:700; }
+    input, select { width:100%; padding:10px; margin-top:5px; border:1px solid #d1d5db; border-radius:10px; }
+    button { margin-top:18px; padding:12px; background:#b91c1c; color:#fff; border:none; border-radius:10px; cursor:pointer; width:100%; font-weight:900; }
+    button.secondary { background:#374151; }
+    button.danger { background:#991b1b; }
+    table { width:100%; margin-top:18px; border-collapse:collapse; }
+    th, td { border:2px solid #b91c1c; padding:8px; text-align:center; }
+    th { background:#b91c1c; color:#fff; }
+    .subtitulo { font-size:20px; font-weight:900; margin-top:28px; }
+    .hint { font-size:12px; color:#555; margin-top:8px; }
+    .row2 { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+    .row3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; }
+    @media (max-width:720px){ .row2, .row3{ grid-template-columns:1fr; } }
+    canvas{ width:100%; }
+
+    .pill { display:inline-block; padding:4px 10px; border-radius:999px; background:#fee2e2; color:#991b1b; font-weight:900; font-size:12px; }
+
+    .miniBtn{
+      margin-top:0;
+      width:auto;
+      padding:10px 12px;
+      border-radius:10px;
+      background:#b91c1c;
+      font-weight:900;
+      color:#fff;
+      border:none;
+      cursor:pointer;
+    }
+    .miniBtn.gray{ background:#374151; }
+    .miniBtn.red{ background:#991b1b; }
+    .miniBtnRow{ display:flex; gap:8px; justify-content:center; flex-wrap:wrap; }
+
+    .cellInput{
+      width:100%;
+      padding:8px;
+      border:1px solid #d1d5db;
+      border-radius:10px;
+      font-weight:700;
+    }
+    .cellSelect{
+      width:100%;
+      padding:8px;
+      border:1px solid #d1d5db;
+      border-radius:10px;
+      font-weight:800;
+      background:#fff;
+    }
+
+    .money { font-variant-numeric: tabular-nums; }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <h1>
+      Sistema Chilería — Registro Diario
+      <span class="pill">LOCAL (sin Supabase)</span>
+    </h1>
+    <div class="hint">
+      Captura ventas por producto. La cantidad se normaliza a <b>kg</b> (si ingresas gramos, se convierte). El precio es el <b>importe total</b> por línea.
+    </div>
+
+    <label>Fecha:
+      <input type="date" id="fecha" value="">
+    </label>
+
+    <label>Producto:
+      <input type="text" id="producto" placeholder="Ej: Chile guajillo, Chile de árbol, Ajo, Cebolla..." />
+    </label>
+
+    <div class="row3">
+      <label>Cantidad:
+        <input type="number" id="cantidad" step="0.01" placeholder="Ej: 2.5 o 500" />
+      </label>
+
+      <label>Unidad:
+        <select id="unidad">
+          <option value="kg">Kilos (kg)</option>
+          <option value="g">Gramos (g)</option>
+        </select>
+      </label>
+
+      <label>Precio (importe total):
+        <input type="number" id="precio" step="0.01" placeholder="Ej: 350.00" />
+      </label>
+    </div>
+
+    <button id="btnAgregar">Agregar venta</button>
+
+    <h2 class="subtitulo">Ventas capturadas (lo más nuevo arriba)</h2>
+    <table id="tablaVentas">
+      <thead>
+        <tr>
+          <th>Producto</th>
+          <th>Cantidad (kg)</th>
+          <th>Precio</th>
+          <th>Acción</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+
+    <h2 class="subtitulo">Resumen del día</h2>
+    <table id="tablaResumen">
+      <thead>
+        <tr>
+          <th>Producto</th>
+          <th>Total (kg)</th>
+          <th>Total ($)</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+
+    <div class="row2" style="margin-top:14px;">
+      <div style="height:260px;">
+        <canvas id="chartKg"></canvas>
+      </div>
+      <div style="height:260px;">
+        <canvas id="chartMoney"></canvas>
+      </div>
+    </div>
+
+    <button class="secondary" id="btnLimpiarDia">Borrar todo del día</button>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+  <script>
+    const $ = (s)=>document.querySelector(s);
+
+    function todayISODate(){
+      const d = new Date();
+      const off = d.getTimezoneOffset();
+      const local = new Date(d.getTime() - off*60000);
+      return local.toISOString().slice(0,10);
+    }
+    function fechaSeleccionada(){ return $('#fecha')?.value || todayISODate(); }
+
+    function num(v){ const n = Number(v); return Number.isFinite(n) ? n : 0; }
+    function escapeHtml(str){
+      return String(str ?? '')
+        .replaceAll('&','&amp;').replaceAll('<','&lt;')
+        .replaceAll('>','&gt;').replaceAll('"','&quot;')
+        .replaceAll("'","&#039;");
+    }
+    function money(n){
+      const x = Number(n||0);
+      return x.toLocaleString('es-MX', { style:'currency', currency:'MXN' });
+    }
+
+    // ======================
+    // Datos (LOCAL por fecha)
+    // ======================
+    // Estructura guardada en localStorage:
+    // chileria_ventas_v1 = { "YYYY-MM-DD": [ {id, producto, kg, precio, created_at} ] }
+    const LS_KEY = 'chileria_ventas_v1';
+    let ventas = [];
+
+    function loadAll(){
+      try { return JSON.parse(localStorage.getItem(LS_KEY) || '{}'); }
+      catch(e){ return {}; }
+    }
+    function saveAll(obj){
+      localStorage.setItem(LS_KEY, JSON.stringify(obj));
+    }
+    function loadDia(fecha){
+      const all = loadAll();
+      const arr = all[fecha] || [];
+      return Array.isArray(arr) ? arr : [];
+    }
+    function saveDia(fecha, arr){
+      const all = loadAll();
+      all[fecha] = arr;
+      saveAll(all);
+    }
+
+    // ======================
+    // Edición inline
+    // ======================
+    const editState = new Map(); // id -> {editing, backup, draft}
+
+    function startEdit(id){
+      const row = ventas.find(x=>x.id===id);
+      if(!row) return;
+
+      // solo una fila en edición
+      for(const [k,v] of editState.entries()){
+        if(v.editing && k !== id){
+          cancelEdit(k);
+        }
+      }
+
+      editState.set(id, {
+        editing:true,
+        backup: JSON.parse(JSON.stringify(row)),
+        draft:  JSON.parse(JSON.stringify(row))
+      });
+      renderAll();
+    }
+
+    function cancelEdit(id){
+      const s = editState.get(id);
+      if(!s) return;
+      const idx = ventas.findIndex(x=>x.id===id);
+      if(idx >= 0) ventas[idx] = s.backup;
+      editState.delete(id);
+      persist();
+      renderAll();
+    }
+
+    function setDraft(id, field, value){
+      const s = editState.get(id);
+      if(!s) return;
+      s.draft[field] = value;
+    }
+
+    function saveEdit(id){
+      const s = editState.get(id);
+      if(!s) return;
+
+      const d = s.draft;
+      const producto = String(d.producto||'').trim();
+      const kg = Number(parseFloat(d.kg).toFixed(3));
+      const precio = Number(parseFloat(d.precio).toFixed(2));
+
+      if(!producto || !Number.isFinite(kg) || kg <= 0 || !Number.isFinite(precio) || precio < 0){
+        alert("En edición: producto obligatorio. Kg > 0. Precio ≥ 0.");
+        return;
+      }
+
+      const idx = ventas.findIndex(x=>x.id===id);
+      if(idx>=0){
+        ventas[idx] = {
+          ...ventas[idx],
+          producto,
+          kg,
+          precio
+        };
+      }
+
+      editState.delete(id);
+      persist();
+      renderAll();
+    }
+
+    // ======================
+    // Render
+    // ======================
+    function renderTablaVentas(){
+      const tbody = document.querySelector("#tablaVentas tbody");
+      tbody.innerHTML = ventas.map((item)=>{
+        const st = editState.get(item.id);
+        const editing = !!st?.editing;
+        const d = editing ? st.draft : item;
+
+        return `
+          <tr>
+            <td>${
+              editing
+                ? `<input class="cellInput" value="${escapeHtml(d.producto)}"
+                     oninput="setDraft('${item.id}','producto', this.value)">`
+                : `${escapeHtml(item.producto)}`
+            }</td>
+
+            <td>${
+              editing
+                ? `<input class="cellInput" type="number" step="0.001" value="${Number(d.kg||0).toFixed(3)}"
+                     oninput="setDraft('${item.id}','kg', this.value)">`
+                : `${(+item.kg).toFixed(3)}`
+            }</td>
+
+            <td class="money">${
+              editing
+                ? `<input class="cellInput" type="number" step="0.01" value="${Number(d.precio||0).toFixed(2)}"
+                     oninput="setDraft('${item.id}','precio', this.value)">`
+                : `${money(item.precio)}`
+            }</td>
+
+            <td>
+              <div class="miniBtnRow">
+                ${
+                  editing
+                    ? `
+                      <button class="miniBtn" onclick="saveEdit('${item.id}')">Guardar</button>
+                      <button class="miniBtn gray" onclick="cancelEdit('${item.id}')">Cancelar</button>
+                    `
+                    : `
+                      <button class="miniBtn" onclick="startEdit('${item.id}')">Editar</button>
+                      <button class="miniBtn red" onclick="eliminarVenta('${item.id}')">Eliminar</button>
+                    `
+                }
+              </div>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function buildResumen(){
+      const map = new Map();
+      for(const r of ventas){
+        const k = r.producto;
+        if(!map.has(k)) map.set(k, { producto:k, kg:0, precio:0 });
+        const o = map.get(k);
+        o.kg += num(r.kg);
+        o.precio += num(r.precio);
+      }
+      return Array.from(map.values()).sort((a,b)=>b.precio-a.precio);
+    }
+
+    function renderResumen(){
+      const rows = buildResumen();
+      const tbody = document.querySelector("#tablaResumen tbody");
+      tbody.innerHTML = rows.map(r=>`
+        <tr>
+          <td>${escapeHtml(r.producto)}</td>
+          <td>${r.kg.toFixed(3)}</td>
+          <td class="money">${money(r.precio)}</td>
+        </tr>
+      `).join('');
+    }
+
+    let chartKg = null;
+    let chartMoney = null;
+
+    function renderCharts(){
+      const rows = buildResumen();
+      const labels = rows.map(r=>r.producto);
+      const kg = rows.map(r=>Number(r.kg.toFixed(3)));
+      const moneyData = rows.map(r=>Number(r.precio.toFixed(2)));
+
+      const cKg = document.getElementById('chartKg');
+      const cMo = document.getElementById('chartMoney');
+
+      if(!cKg || !cMo) return;
+
+      if(chartKg){
+        chartKg.data.labels = labels;
+        chartKg.data.datasets[0].data = kg;
+        chartKg.update();
+      } else {
+        chartKg = new Chart(cKg, {
+          type:'bar',
+          data:{ labels, datasets:[{ label:'Total kg', data: kg }] },
+          options:{ responsive:true, maintainAspectRatio:false, scales:{ y:{ beginAtZero:true } } }
+        });
+      }
+
+      if(chartMoney){
+        chartMoney.data.labels = labels;
+        chartMoney.data.datasets[0].data = moneyData;
+        chartMoney.update();
+      } else {
+        chartMoney = new Chart(cMo, {
+          type:'bar',
+          data:{ labels, datasets:[{ label:'Total $', data: moneyData }] },
+          options:{ responsive:true, maintainAspectRatio:false, scales:{ y:{ beginAtZero:true } } }
+        });
+      }
+    }
+
+    function renderAll(){
+      renderTablaVentas();
+      renderResumen();
+      renderCharts();
+    }
+
+    // ======================
+    // Acciones
+    // ======================
+    function toKg(cantidad, unidad){
+      const c = num(cantidad);
+      if(!c) return 0;
+      return unidad === 'g' ? (c / 1000) : c;
+    }
+
+    function persist(){
+      const f = fechaSeleccionada();
+      saveDia(f, ventas);
+    }
+
+    function cargarDia(){
+      const f = fechaSeleccionada();
+      ventas = loadDia(f).slice().sort((a,b)=> (b.created_at||0) - (a.created_at||0));
+      editState.clear();
+      renderAll();
+    }
+
+    function agregarVenta(){
+      const f = fechaSeleccionada();
+      const producto = String($('#producto').value || '').trim();
+      const cantidad = $('#cantidad').value;
+      const unidad = $('#unidad').value;
+      const precio = $('#precio').value;
+
+      const kg = Number(toKg(cantidad, unidad).toFixed(3));
+      const pr = Number(parseFloat(precio).toFixed(2));
+
+      if(!producto || !Number.isFinite(kg) || kg <= 0 || !Number.isFinite(pr) || pr < 0){
+        alert("Completa: producto, cantidad (>0) y precio (≥0).");
+        return;
+      }
+
+      const row = {
+        id: crypto?.randomUUID ? crypto.randomUUID() : String(Date.now()) + "_" + Math.random().toString(16).slice(2),
+        producto,
+        kg,
+        precio: pr,
+        created_at: Date.now()
+      };
+
+      ventas.unshift(row);
+      saveDia(f, ventas);
+
+      // limpiar campos
+      $('#producto').value = '';
+      $('#cantidad').value = '';
+      $('#precio').value = '';
+      $('#unidad').value = 'kg';
+
+      renderAll();
+    }
+
+    function eliminarVenta(id){
+      if(!id) return;
+      ventas = ventas.filter(x=>x.id !== id);
+      editState.delete(id);
+      persist();
+      renderAll();
+    }
+
+    function limpiarDia(){
+      const f = fechaSeleccionada();
+      if(!confirm(`¿Seguro que quieres borrar TODO el día ${f}?`)) return;
+      ventas = [];
+      editState.clear();
+      saveDia(f, ventas);
+      renderAll();
+    }
+
+    // ======================
+    // Arranque
+    // ======================
+    document.getElementById("fecha").value = todayISODate();
+    cargarDia();
+
+    $('#fecha').addEventListener('change', cargarDia);
+    $('#btnAgregar').addEventListener('click', agregarVenta);
+    $('#btnLimpiarDia').addEventListener('click', limpiarDia);
+
+    // Exponer para onclick inline
+    window.startEdit = startEdit;
+    window.cancelEdit = cancelEdit;
+    window.saveEdit = saveEdit;
+    window.setDraft = setDraft;
+    window.eliminarVenta = eliminarVenta;
+  </script>
+</body>
+</html>
