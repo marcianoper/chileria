@@ -185,65 +185,7 @@
     // ======================
     // Edición inline
     // ======================
-    const editState = new Map(); // id -> {editing, backup, draft}
-
-    function startEdit(id){
-      const row = ventas.find(x=>x.id===id);
-      if(!row) return;
-
-      for(const [k,v] of editState.entries()){
-        if(v.editing && k !== id){
-          cancelEdit(k);
-        }
-      }
-
-      editState.set(id, {
-        editing:true,
-        backup: JSON.parse(JSON.stringify(row)),
-        draft:  JSON.parse(JSON.stringify(row))
-      });
-      renderAll();
-    }
-
-    function cancelEdit(id){
-      const s = editState.get(id);
-      if(!s) return;
-      const idx = ventas.findIndex(x=>x.id===id);
-      if(idx >= 0) ventas[idx] = s.backup;
-      editState.delete(id);
-      persist();
-      renderAll();
-    }
-
-    function setDraft(id, field, value){
-      const s = editState.get(id);
-      if(!s) return;
-      s.draft[field] = value;
-    }
-
-    function saveEdit(id){
-      const s = editState.get(id);
-      if(!s) return;
-
-      const d = s.draft;
-      const producto = String(d.producto||'').trim();
-      const kg = Number(parseFloat(d.kg).toFixed(3));
-      const precio = Number(parseFloat(d.precio).toFixed(2));
-
-      if(!producto || !Number.isFinite(kg) || kg <= 0 || !Number.isFinite(precio) || precio < 0){
-        alert("En edición: producto obligatorio. Kg > 0. Precio ≥ 0.");
-        return;
-      }
-
-      const idx = ventas.findIndex(x=>x.id===id);
-      if(idx>=0){
-        ventas[idx] = { ...ventas[idx], producto, kg, precio };
-      }
-
-      editState.delete(id);
-      persist();
-      renderAll();
-    }
+    
 
     // ======================
     // Render
