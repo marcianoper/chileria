@@ -6,463 +6,520 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <style>
-    body { font-family: sans-serif; background:#f2f2f2; padding:20px; }
-    .container { background:#fff; padding:30px; border-radius:10px; max-width:900px; margin:auto; }
-    h1 { color:#b91c1c; display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
-    label { display:block; margin-top:15px; font-weight:700; }
-    input, select { width:100%; padding:10px; margin-top:5px; border:1px solid #d1d5db; border-radius:10px; }
-    button { margin-top:18px; padding:12px; background:#b91c1c; color:#fff; border:none; border-radius:10px; cursor:pointer; width:100%; font-weight:900; }
-    button.secondary { background:#374151; }
-    button.danger { background:#991b1b; }
-    table { width:100%; margin-top:18px; border-collapse:collapse; }
-    th, td { border:2px solid #b91c1c; padding:8px; text-align:center; }
-    th { background:#b91c1c; color:#fff; }
-    .subtitulo { font-size:20px; font-weight:900; margin-top:28px; }
-    .hint { font-size:12px; color:#555; margin-top:8px; }
+    body { font-family: sans-serif; background:#f2f2f2; padding:20px; margin:0; }
+    .container { background:#fff; padding:22px; border-radius:14px; max-width:980px; margin:auto; }
+    h1 { color:#b91c1c; display:flex; gap:10px; flex-wrap:wrap; margin:0 0 8px; align-items:center; }
+    .pill { display:inline-flex; align-items:center; gap:8px; padding:6px 12px; border-radius:999px; font-weight:900; font-size:12px; }
+    .pill.op { background:#e0f2fe; color:#075985; }
+    .pill.ad { background:#fee2e2; color:#991b1b; }
+    .topbar { display:flex; gap:10px; flex-wrap:wrap; justify-content:space-between; align-items:center; margin-bottom:10px; }
+    .topbar .left { display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+    .hint { font-size:12px; color:#555; margin:6px 0 12px; }
+
+    label { display:block; margin-top:12px; font-weight:800; }
+    input, select {
+      width:100%; padding:12px; margin-top:6px;
+      border:1px solid #d1d5db; border-radius:12px; font-size:16px;
+    }
+
+    .row3 { display:grid; grid-template-columns:1.2fr 0.9fr 0.9fr; gap:12px; }
     .row2 { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
-    .row3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; }
-    @media (max-width:720px){ .row2, .row3{ grid-template-columns:1fr; } }
-    canvas{ width:100%; }
-
-    .pill { display:inline-block; padding:4px 10px; border-radius:999px; background:#fee2e2; color:#991b1b; font-weight:900; font-size:12px; }
-
-    .miniBtn{
-      margin-top:0;
-      width:auto;
-      padding:10px 12px;
-      border-radius:10px;
-      background:#b91c1c;
-      font-weight:900;
-      color:#fff;
-      border:none;
-      cursor:pointer;
+    @media (max-width:820px){
+      .row3 { grid-template-columns:1fr; }
+      .row2 { grid-template-columns:1fr; }
+      body { padding:12px; }
+      .container { padding:16px; border-radius:16px; }
     }
-    .miniBtn.gray{ background:#374151; }
-    .miniBtn.red{ background:#991b1b; }
-    .miniBtnRow{ display:flex; gap:8px; justify-content:center; flex-wrap:wrap; }
 
-    .cellInput{
-      width:100%;
-      padding:8px;
-      border:1px solid #d1d5db;
-      border-radius:10px;
-      font-weight:700;
+    button{
+      margin-top:14px; padding:14px 14px;
+      border:none; border-radius:14px; cursor:pointer;
+      width:100%; font-weight:900; font-size:16px;
     }
+    .btnPrimary { background:#b91c1c; color:#fff; }
+    .btnSecondary { background:#374151; color:#fff; }
+    .btnDanger { background:#991b1b; color:#fff; }
+    .btnGhost { background:#f3f4f6; color:#111; border:1px solid #e5e7eb; }
+
+    table { width:100%; margin-top:14px; border-collapse:collapse; }
+    th, td { border:2px solid #b91c1c; padding:10px; text-align:center; }
+    th { background:#b91c1c; color:#fff; }
+    .subtitulo { font-size:18px; font-weight:1000; margin-top:22px; }
+
     .money { font-variant-numeric: tabular-nums; }
+
+    /* ===== Vista móvil tipo cards ===== */
+    .mobileOnly{ display:none; }
+    .desktopOnly{ display:block; }
+
+    .cardList{ display:grid; gap:10px; margin-top:12px; }
+    .card{
+      border:1px solid #e5e7eb; border-radius:16px; padding:12px;
+      background:#fff; box-shadow:0 8px 18px rgba(0,0,0,.06);
+    }
+    .card .t{ font-weight:1000; font-size:16px; margin-bottom:6px; }
+    .card .meta{ display:grid; grid-template-columns:1fr 1fr; gap:8px; font-weight:800; }
+    .chip{ display:inline-block; padding:6px 10px; border-radius:999px; background:#f3f4f6; font-weight:900; font-size:12px; }
+    .cardActions{ margin-top:10px; display:flex; gap:10px; }
+    .cardActions button{ margin-top:0; width:100%; padding:12px; border-radius:14px; }
+
+    @media (max-width:820px){
+      .mobileOnly{ display:block; }
+      .desktopOnly{ display:none; }
+    }
+
+    /* ===== Modal PIN ===== */
+    .modalBack{
+      position:fixed; inset:0; background:rgba(0,0,0,.45);
+      display:none; align-items:center; justify-content:center; padding:16px;
+      z-index:9999;
+    }
+    .modal{
+      width:100%; max-width:420px; background:#fff; border-radius:18px; padding:16px;
+      box-shadow:0 20px 60px rgba(0,0,0,.25);
+    }
+    .modal h3{ margin:0 0 10px; font-size:18px; }
+    .modal .row{ display:flex; gap:10px; }
+    .modal .row button{ margin-top:10px; }
+    .modal small{ color:#6b7280; }
   </style>
 </head>
 
 <body>
   <div class="container">
-    <h1>
-      Sistema Chilería — Registro Diario
-      <span class="pill">LOCAL (sin Supabase)</span>
-    </h1>
+    <div class="topbar">
+      <div class="left">
+        <h1>Sistema Chilería — Registro Diario</h1>
+        <span id="modoPill" class="pill op">🧑‍🍳 Operador</span>
+      </div>
+
+      <div class="left" style="gap:8px;">
+        <button id="btnModo" class="btnGhost" style="width:auto; margin-top:0; padding:10px 12px;">
+          Cambiar modo
+        </button>
+      </div>
+    </div>
+
     <div class="hint">
-      Captura ventas por producto. La cantidad se normaliza a <b>kg</b> (si ingresas gramos, se convierte). El precio es el <b>importe total</b> por línea.
+      Cantidad se guarda en <b>kg</b> (si ingresas gramos se convierte). Precio es <b>importe total</b> por línea.
+      <br>En <b>Modo Operador</b> no se puede eliminar ni borrar el día.
     </div>
 
     <label>Fecha:
-      <input type="date" id="fecha" value="">
+      <input type="date" id="fecha">
     </label>
 
     <label>Producto:
-      <input type="text" id="producto" placeholder="Ej: Chile guajillo, Chile de árbol, Ajo, Cebolla..." />
+      <input type="text" id="producto" placeholder="Ej: Chile guajillo">
     </label>
 
     <div class="row3">
       <label>Cantidad:
-        <input type="number" id="cantidad" step="0.01" placeholder="Ej: 2.5 o 500" />
+        <input type="number" id="cantidad" step="0.01" placeholder="Ej: 2.5 o 500">
       </label>
 
       <label>Unidad:
         <select id="unidad">
-          <option value="kg">Kilos (kg)</option>
-          <option value="g">Gramos (g)</option>
+          <option value="kg">Kilos</option>
+          <option value="g">Gramos</option>
         </select>
       </label>
 
-      <label>Precio (importe total):
-        <input type="number" id="precio" step="0.01" placeholder="Ej: 350.00" />
+      <label>Precio (importe):
+        <input type="number" id="precio" step="0.01" placeholder="Ej: 350.00">
       </label>
     </div>
 
-    <button id="btnAgregar">Agregar venta</button>
+    <button id="btnAgregar" class="btnPrimary">Agregar venta</button>
 
-    <h2 class="subtitulo">Ventas capturadas (lo más nuevo arriba)</h2>
-    <table id="tablaVentas">
-      <thead>
-        <tr>
-          <th>Producto</th>
-          <th>Cantidad (kg)</th>
-          <th>Precio</th>
-          <th>Acción</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
+    <h2 class="subtitulo">Ventas del día</h2>
 
-    <h2 class="subtitulo">Resumen del día</h2>
-    <table id="tablaResumen">
-      <thead>
-        <tr>
-          <th>Producto</th>
-          <th>Total (kg)</th>
-          <th>Total ($)</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
-
-    <div class="row2" style="margin-top:14px;">
-      <div style="height:260px;">
-        <canvas id="chartKg"></canvas>
-      </div>
-      <div style="height:260px;">
-        <canvas id="chartMoney"></canvas>
-      </div>
+    <!-- Desktop table -->
+    <div class="desktopOnly">
+      <table>
+        <thead>
+          <tr>
+            <th>Producto</th>
+            <th>Kilos</th>
+            <th>Precio</th>
+            <th>Eliminar</th>
+          </tr>
+        </thead>
+        <tbody id="tablaVentas"></tbody>
+      </table>
     </div>
 
-    <!-- ✅ NUEVO: PDF -->
-    <button class="secondary" id="btnPDF">Generar PDF del resumen</button>
+    <!-- Mobile cards -->
+    <div class="mobileOnly">
+      <div id="cardsVentas" class="cardList"></div>
+    </div>
 
-    <button class="danger" id="btnLimpiarDia">Borrar todo del día</button>
+    <h2 class="subtitulo">Resumen del día</h2>
+
+    <!-- Desktop summary table -->
+    <div class="desktopOnly">
+      <table>
+        <thead>
+          <tr>
+            <th>Producto</th>
+            <th>Total kg</th>
+            <th>Total $</th>
+          </tr>
+        </thead>
+        <tbody id="tablaResumen"></tbody>
+      </table>
+    </div>
+
+    <!-- Mobile summary cards -->
+    <div class="mobileOnly">
+      <div id="cardsResumen" class="cardList"></div>
+    </div>
+
+    <div class="row2" style="margin-top:12px;">
+      <div style="height:260px"><canvas id="chartKg"></canvas></div>
+      <div style="height:260px"><canvas id="chartMoney"></canvas></div>
+    </div>
+
+    <button class="btnSecondary" id="btnPDF">Generar PDF del resumen</button>
+    <button class="btnDanger" id="btnLimpiar">Borrar día</button>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <!-- Modal PIN -->
+  <div id="modalBack" class="modalBack">
+    <div class="modal">
+      <h3>Ingresar PIN de Admin</h3>
+      <small>Solo Admin puede eliminar ventas o borrar el día.</small>
+      <label style="margin-top:12px;">PIN:
+        <input id="pinInput" type="password" inputmode="numeric" placeholder="••••" />
+      </label>
+      <div class="row">
+        <button id="btnPinCancelar" class="btnGhost">Cancelar</button>
+        <button id="btnPinOk" class="btnPrimary">Entrar</button>
+      </div>
+    </div>
+  </div>
 
-  <!-- ✅ jsPDF + AutoTable -->
-  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.4/dist/jspdf.plugin.autotable.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.4/dist/jspdf.plugin.autotable.min.js"></script>
 
-  <script>
-    const $ = (s)=>document.querySelector(s);
+<script>
+  // ====== CONFIG ======
+  const LS_KEY = "chileria_v2";
+  const LS_MODE = "chileria_mode_v1"; // "operador" | "admin"
+  const ADMIN_PIN = "1234"; // 👈 CAMBIA AQUÍ
 
-    function todayISODate(){
-      const d = new Date();
-      const off = d.getTimezoneOffset();
-      const local = new Date(d.getTime() - off*60000);
-      return local.toISOString().slice(0,10);
+  let ventas = [];
+  let chartKg, chartMoney;
+
+  const $ = s => document.querySelector(s);
+  const today = () => {
+    const d = new Date();
+    const off = d.getTimezoneOffset();
+    const local = new Date(d.getTime() - off*60000);
+    return local.toISOString().slice(0,10);
+  };
+
+  function toKg(c,u){ return u==="g" ? (c/1000) : c; }
+  function num(v){ const n = Number(v); return Number.isFinite(n) ? n : 0; }
+  function money(n){ return (Number(n||0)).toLocaleString('es-MX',{style:'currency',currency:'MXN'}); }
+  function escapeHtml(str){
+    return String(str ?? '')
+      .replaceAll('&','&amp;').replaceAll('<','&lt;')
+      .replaceAll('>','&gt;').replaceAll('"','&quot;')
+      .replaceAll("'","&#039;");
+  }
+
+  // ====== MODO (Operador/Admin) ======
+  function getMode(){
+    return localStorage.getItem(LS_MODE) || "operador";
+  }
+  function setMode(mode){
+    localStorage.setItem(LS_MODE, mode);
+    applyModeUI();
+    render(); // para ocultar/mostrar botones
+  }
+  function applyModeUI(){
+    const mode = getMode();
+    const pill = $("#modoPill");
+    if(mode === "admin"){
+      pill.className = "pill ad";
+      pill.textContent = "🔐 Admin";
+    }else{
+      pill.className = "pill op";
+      pill.textContent = "🧑‍🍳 Operador";
     }
-    function fechaSeleccionada(){ return $('#fecha')?.value || todayISODate(); }
+    // Botón borrar día
+    $("#btnLimpiar").disabled = (mode !== "admin");
+    $("#btnLimpiar").style.opacity = (mode !== "admin") ? 0.5 : 1;
+  }
 
-    function num(v){ const n = Number(v); return Number.isFinite(n) ? n : 0; }
-    function escapeHtml(str){
-      return String(str ?? '')
-        .replaceAll('&','&amp;').replaceAll('<','&lt;')
-        .replaceAll('>','&gt;').replaceAll('"','&quot;')
-        .replaceAll("'","&#039;");
+  function openPinModal(){
+    $("#pinInput").value = "";
+    $("#modalBack").style.display = "flex";
+    setTimeout(()=>$("#pinInput").focus(), 50);
+  }
+  function closePinModal(){
+    $("#modalBack").style.display = "none";
+  }
+  function tryAdminPin(){
+    const pin = String($("#pinInput").value || "");
+    if(pin === ADMIN_PIN){
+      setMode("admin");
+      closePinModal();
+    }else{
+      alert("PIN incorrecto.");
     }
-    function money(n){
-      const x = Number(n||0);
-      return x.toLocaleString('es-MX', { style:'currency', currency:'MXN' });
-    }
+  }
 
-    // ======================
-    // Datos (LOCAL por fecha)
-    // ======================
-    const LS_KEY = 'chileria_ventas_v1';
-    let ventas = [];
+  // ====== LocalStorage por fecha ======
+  function loadAll(){
+    try { return JSON.parse(localStorage.getItem(LS_KEY) || "{}"); }
+    catch(e){ return {}; }
+  }
+  function saveAll(obj){
+    localStorage.setItem(LS_KEY, JSON.stringify(obj));
+  }
+  function load(){
+    const all = loadAll();
+    const f = $("#fecha").value;
+    ventas = all[f] || [];
+  }
+  function save(){
+    const all = loadAll();
+    const f = $("#fecha").value;
+    all[f] = ventas;
+    saveAll(all);
+  }
 
-    function loadAll(){
-      try { return JSON.parse(localStorage.getItem(LS_KEY) || '{}'); }
-      catch(e){ return {}; }
-    }
-    function saveAll(obj){
-      localStorage.setItem(LS_KEY, JSON.stringify(obj));
-    }
-    function loadDia(fecha){
-      const all = loadAll();
-      const arr = all[fecha] || [];
-      return Array.isArray(arr) ? arr : [];
-    }
-    function saveDia(fecha, arr){
-      const all = loadAll();
-      all[fecha] = arr;
-      saveAll(all);
-    }
+  // ====== Resumen ======
+  function resumen(){
+    const m = new Map();
+    ventas.forEach(v=>{
+      const key = v.producto;
+      if(!m.has(key)) m.set(key, { producto:key, kg:0, precio:0 });
+      const o = m.get(key);
+      o.kg += num(v.kg);
+      o.precio += num(v.precio);
+    });
+    return Array.from(m.values()).sort((a,b)=> b.precio - a.precio);
+  }
 
-    // ======================
-    // Edición inline
-    // ======================
-    
+  // ====== Render ======
+  function render(){
+    const mode = getMode();
 
-    // ======================
-    // Render
-    // ======================
-    function renderTablaVentas(){
-      const tbody = document.querySelector("#tablaVentas tbody");
-      tbody.innerHTML = ventas.map((item)=>{
-        const st = editState.get(item.id);
-        const editing = !!st?.editing;
-        const d = editing ? st.draft : item;
+    // Tabla desktop
+    $("#tablaVentas").innerHTML = ventas.map(v=>`
+      <tr>
+        <td>${escapeHtml(v.producto)}</td>
+        <td>${num(v.kg).toFixed(3)}</td>
+        <td class="money">${money(v.precio)}</td>
+        <td>
+          <button
+            ${mode!=="admin" ? "disabled style='opacity:.4;cursor:not-allowed;'" : ""}
+            onclick="eliminar('${v.id}')"
+          >❌</button>
+        </td>
+      </tr>
+    `).join("");
 
-        return `
-          <tr>
-            <td>${
-              editing
-                ? `<input class="cellInput" value="${escapeHtml(d.producto)}"
-                     oninput="setDraft('${item.id}','producto', this.value)">`
-                : `${escapeHtml(item.producto)}`
-            }</td>
+    // Cards móvil
+    $("#cardsVentas").innerHTML = ventas.map(v=>`
+      <div class="card">
+        <div class="t">${escapeHtml(v.producto)}</div>
+        <div class="meta">
+          <div><span class="chip">Kg</span> ${num(v.kg).toFixed(3)}</div>
+          <div><span class="chip">$</span> ${money(v.precio)}</div>
+        </div>
+        <div class="cardActions">
+          <button class="btnDanger"
+            ${mode!=="admin" ? "disabled style='opacity:.45;cursor:not-allowed;'" : ""}
+            onclick="eliminar('${v.id}')"
+          >Eliminar</button>
+        </div>
+      </div>
+    `).join("");
 
-            <td>${
-              editing
-                ? `<input class="cellInput" type="number" step="0.001" value="${Number(d.kg||0).toFixed(3)}"
-                     oninput="setDraft('${item.id}','kg', this.value)">`
-                : `${(+item.kg).toFixed(3)}`
-            }</td>
+    // Resumen
+    const r = resumen();
 
-            <td class="money">${
-              editing
-                ? `<input class="cellInput" type="number" step="0.01" value="${Number(d.precio||0).toFixed(2)}"
-                     oninput="setDraft('${item.id}','precio', this.value)">`
-                : `${money(item.precio)}`
-            }</td>
+    // Resumen desktop
+    $("#tablaResumen").innerHTML = r.map(x=>`
+      <tr>
+        <td>${escapeHtml(x.producto)}</td>
+        <td>${num(x.kg).toFixed(3)}</td>
+        <td class="money">${money(x.precio)}</td>
+      </tr>
+    `).join("");
 
-            <td>
-              <div class="miniBtnRow">
-                ${
-                  editing
-                    ? `
-                      <button class="miniBtn" onclick="saveEdit('${item.id}')">Guardar</button>
-                      <button class="miniBtn gray" onclick="cancelEdit('${item.id}')">Cancelar</button>
-                    `
-                    : `
-                      <button class="miniBtn" onclick="startEdit('${item.id}')">Editar</button>
-                      <button class="miniBtn red" onclick="eliminarVenta('${item.id}')">Eliminar</button>
-                    `
-                }
-              </div>
-            </td>
-          </tr>
-        `;
-      }).join('');
-    }
+    // Resumen móvil cards
+    $("#cardsResumen").innerHTML = r.map(x=>`
+      <div class="card">
+        <div class="t">${escapeHtml(x.producto)}</div>
+        <div class="meta">
+          <div><span class="chip">Total kg</span> ${num(x.kg).toFixed(3)}</div>
+          <div><span class="chip">Total $</span> ${money(x.precio)}</div>
+        </div>
+      </div>
+    `).join("");
 
-    function buildResumen(){
-      const map = new Map();
-      for(const r of ventas){
-        const k = r.producto;
-        if(!map.has(k)) map.set(k, { producto:k, kg:0, precio:0 });
-        const o = map.get(k);
-        o.kg += num(r.kg);
-        o.precio += num(r.precio);
-      }
-      return Array.from(map.values()).sort((a,b)=>b.precio-a.precio);
-    }
+    // Charts
+    const labels = r.map(x=>x.producto);
+    const kg = r.map(x=>Number(num(x.kg).toFixed(3)));
+    const moneyArr = r.map(x=>Number(num(x.precio).toFixed(2)));
 
-    function renderResumen(){
-      const rows = buildResumen();
-      const tbody = document.querySelector("#tablaResumen tbody");
-      tbody.innerHTML = rows.map(r=>`
-        <tr>
-          <td>${escapeHtml(r.producto)}</td>
-          <td>${r.kg.toFixed(3)}</td>
-          <td class="money">${money(r.precio)}</td>
-        </tr>
-      `).join('');
-    }
-
-    let chartKg = null;
-    let chartMoney = null;
-
-    function renderCharts(){
-      const rows = buildResumen();
-      const labels = rows.map(r=>r.producto);
-      const kg = rows.map(r=>Number(r.kg.toFixed(3)));
-      const moneyData = rows.map(r=>Number(r.precio.toFixed(2)));
-
-      const cKg = document.getElementById('chartKg');
-      const cMo = document.getElementById('chartMoney');
-      if(!cKg || !cMo) return;
-
-      if(chartKg){
-        chartKg.data.labels = labels;
-        chartKg.data.datasets[0].data = kg;
-        chartKg.update();
-      } else {
-        chartKg = new Chart(cKg, {
-          type:'bar',
-          data:{ labels, datasets:[{ label:'Total kg', data: kg }] },
-          options:{ responsive:true, maintainAspectRatio:false, scales:{ y:{ beginAtZero:true } } }
-        });
-      }
-
-      if(chartMoney){
-        chartMoney.data.labels = labels;
-        chartMoney.data.datasets[0].data = moneyData;
-        chartMoney.update();
-      } else {
-        chartMoney = new Chart(cMo, {
-          type:'bar',
-          data:{ labels, datasets:[{ label:'Total $', data: moneyData }] },
-          options:{ responsive:true, maintainAspectRatio:false, scales:{ y:{ beginAtZero:true } } }
-        });
-      }
-    }
-
-    function renderAll(){
-      renderTablaVentas();
-      renderResumen();
-      renderCharts();
-    }
-
-    // ======================
-    // Acciones
-    // ======================
-    function toKg(cantidad, unidad){
-      const c = num(cantidad);
-      if(!c) return 0;
-      return unidad === 'g' ? (c / 1000) : c;
-    }
-
-    function persist(){
-      const f = fechaSeleccionada();
-      saveDia(f, ventas);
-    }
-
-    function cargarDia(){
-      const f = fechaSeleccionada();
-      ventas = loadDia(f).slice().sort((a,b)=> (b.created_at||0) - (a.created_at||0));
-      editState.clear();
-      renderAll();
-    }
-
-    function agregarVenta(){
-      const f = fechaSeleccionada();
-      const producto = String($('#producto').value || '').trim();
-      const cantidad = $('#cantidad').value;
-      const unidad = $('#unidad').value;
-      const precio = $('#precio').value;
-
-      const kg = Number(toKg(cantidad, unidad).toFixed(3));
-      const pr = Number(parseFloat(precio).toFixed(2));
-
-      if(!producto || !Number.isFinite(kg) || kg <= 0 || !Number.isFinite(pr) || pr < 0){
-        alert("Completa: producto, cantidad (>0) y precio (≥0).");
-        return;
-      }
-
-      const row = {
-        id: crypto?.randomUUID ? crypto.randomUUID() : String(Date.now()) + "_" + Math.random().toString(16).slice(2),
-        producto,
-        kg,
-        precio: pr,
-        created_at: Date.now()
-      };
-
-      ventas.unshift(row);
-      saveDia(f, ventas);
-
-      $('#producto').value = '';
-      $('#cantidad').value = '';
-      $('#precio').value = '';
-      $('#unidad').value = 'kg';
-
-      renderAll();
-    }
-
-    function eliminarVenta(id){
-      if(!id) return;
-      ventas = ventas.filter(x=>x.id !== id);
-      editState.delete(id);
-      persist();
-      renderAll();
-    }
-
-    function limpiarDia(){
-      const f = fechaSeleccionada();
-      if(!confirm(`¿Seguro que quieres borrar TODO el día ${f}?`)) return;
-      ventas = [];
-      editState.clear();
-      saveDia(f, ventas);
-      renderAll();
-    }
-
-    // ======================
-    // ✅ PDF del resumen
-    // ======================
-    function generarPDFResumen(){
-      const f = fechaSeleccionada();
-      const rows = buildResumen();
-
-      const totalKg = rows.reduce((acc,r)=>acc + num(r.kg), 0);
-      const totalMoney = rows.reduce((acc,r)=>acc + num(r.precio), 0);
-
-      // jsPDF UMD
-      const { jsPDF } = window.jspdf;
-      const doc = new jsPDF({ orientation:'p', unit:'mm', format:'a4' });
-
-      // Header
-      doc.setFont('helvetica','bold');
-      doc.setFontSize(16);
-      doc.text('Resumen de Ventas — Chilería', 14, 16);
-
-      doc.setFontSize(11);
-      doc.setFont('helvetica','normal');
-      doc.text(`Fecha: ${f}`, 14, 24);
-
-      doc.setFont('helvetica','bold');
-      doc.text(`Total kg: ${totalKg.toFixed(3)} kg`, 14, 31);
-      doc.text(`Total $: ${money(totalMoney)}`, 110, 31);
-
-      // Tabla
-      const body = rows.map(r=>[
-        String(r.producto),
-        r.kg.toFixed(3),
-        money(r.precio)
-      ]);
-
-      doc.autoTable({
-        startY: 36,
-        head: [['Producto','Total (kg)','Total ($)']],
-        body,
-        styles: { fontSize: 10, cellPadding: 2.2 },
-        headStyles: { fillColor: [185, 28, 28] },
-        columnStyles: {
-          0: { cellWidth: 95 },
-          1: { halign: 'right', cellWidth: 35 },
-          2: { halign: 'right', cellWidth: 45 }
-        },
-        didDrawPage: (data) => {
-          // Footer
-          const pageHeight = doc.internal.pageSize.height || 297;
-          doc.setFontSize(9);
-          doc.setTextColor(120);
-          doc.text(`Generado: ${new Date().toLocaleString('es-MX')}`, 14, pageHeight - 10);
-          doc.setTextColor(0);
-        }
+    if(chartKg){
+      chartKg.data.labels = labels;
+      chartKg.data.datasets[0].data = kg;
+      chartKg.update();
+    } else {
+      chartKg = new Chart($("#chartKg"), {
+        type:"bar",
+        data:{ labels, datasets:[{ label:"Total kg", data:kg }] },
+        options:{ responsive:true, maintainAspectRatio:false, scales:{ y:{ beginAtZero:true } } }
       });
-
-      // Espacio firma
-      const y = doc.lastAutoTable?.finalY ? doc.lastAutoTable.finalY + 14 : 260;
-      doc.setFontSize(11);
-      doc.setFont('helvetica','normal');
-      doc.text('Firma / Responsable:', 14, Math.min(y, 270));
-      doc.line(55, Math.min(y, 270), 190, Math.min(y, 270));
-
-      const filename = `Resumen_Chileria_${f}.pdf`;
-      doc.save(filename);
     }
 
-    // ======================
-    // Arranque
-    // ======================
-    document.getElementById("fecha").value = todayISODate();
-    cargarDia();
+    if(chartMoney){
+      chartMoney.data.labels = labels;
+      chartMoney.data.datasets[0].data = moneyArr;
+      chartMoney.update();
+    } else {
+      chartMoney = new Chart($("#chartMoney"), {
+        type:"bar",
+        data:{ labels, datasets:[{ label:"Total $", data:moneyArr }] },
+        options:{ responsive:true, maintainAspectRatio:false, scales:{ y:{ beginAtZero:true } } }
+      });
+    }
 
-    $('#fecha').addEventListener('change', cargarDia);
-    $('#btnAgregar').addEventListener('click', agregarVenta);
-    $('#btnLimpiarDia').addEventListener('click', limpiarDia);
-    $('#btnPDF').addEventListener('click', generarPDFResumen);
+    // Botón borrar día (seguro)
+    $("#btnLimpiar").disabled = (mode !== "admin");
+    $("#btnLimpiar").style.opacity = (mode !== "admin") ? 0.5 : 1;
+  }
 
-    // Exponer para onclick inline
-    window.startEdit = startEdit;
-    window.cancelEdit = cancelEdit;
-    window.saveEdit = saveEdit;
-    window.setDraft = setDraft;
-    window.eliminarVenta = eliminarVenta;
-  </script>
+  // ====== Acciones ======
+  function agregar(){
+    const p = ($("#producto").value || "").trim();
+    const c = Number($("#cantidad").value);
+    const u = $("#unidad").value;
+    const pr = Number($("#precio").value);
+
+    const kg = toKg(c,u);
+
+    if(!p || !Number.isFinite(kg) || kg<=0 || !Number.isFinite(pr) || pr<0){
+      return alert("Completa: producto, cantidad (>0) y precio (≥0).");
+    }
+
+    ventas.unshift({
+      id: (crypto?.randomUUID ? crypto.randomUUID() : String(Date.now())+"_"+Math.random().toString(16).slice(2)),
+      producto: p,
+      kg: Number(kg.toFixed(3)),
+      precio: Number(pr.toFixed(2)),
+      created_at: Date.now()
+    });
+
+    save();
+    render();
+
+    // Limpia para siguiente captura (rápido en móvil)
+    $("#producto").value = "";
+    $("#cantidad").value = "";
+    $("#precio").value = "";
+    $("#unidad").value = "kg";
+    $("#producto").focus();
+  }
+
+  function eliminar(id){
+    if(getMode() !== "admin") return alert("Modo Operador: no se puede eliminar.");
+    ventas = ventas.filter(v=>v.id!==id);
+    save();
+    render();
+  }
+
+  function limpiarDia(){
+    if(getMode() !== "admin") return alert("Modo Operador: no se puede borrar el día.");
+    const f = $("#fecha").value;
+    if(!confirm(`¿Seguro que quieres borrar TODO el día ${f}?`)) return;
+    ventas = [];
+    save();
+    render();
+  }
+
+  function pdf(){
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ orientation:'p', unit:'mm', format:'a4' });
+    const f = $("#fecha").value;
+    const r = resumen();
+    const totalKg = r.reduce((a,x)=>a+num(x.kg),0);
+    const totalMoney = r.reduce((a,x)=>a+num(x.precio),0);
+
+    doc.setFont('helvetica','bold');
+    doc.setFontSize(16);
+    doc.text("Resumen de ventas — Chilería", 14, 16);
+
+    doc.setFont('helvetica','normal');
+    doc.setFontSize(11);
+    doc.text(`Fecha: ${f}`, 14, 24);
+
+    doc.setFont('helvetica','bold');
+    doc.text(`Total kg: ${totalKg.toFixed(3)} kg`, 14, 31);
+    doc.text(`Total $: ${money(totalMoney)}`, 110, 31);
+
+    doc.autoTable({
+      startY: 36,
+      head: [["Producto","Total (kg)","Total ($)"]],
+      body: r.map(x=>[String(x.producto), num(x.kg).toFixed(3), money(x.precio)]),
+      styles: { fontSize: 10, cellPadding: 2.2 },
+      headStyles: { fillColor: [185, 28, 28] },
+      columnStyles: { 0:{cellWidth:95}, 1:{halign:'right',cellWidth:35}, 2:{halign:'right',cellWidth:45} }
+    });
+
+    const y = (doc.lastAutoTable?.finalY || 200) + 14;
+    doc.setFont('helvetica','normal');
+    doc.setFontSize(11);
+    doc.text("Firma / Responsable:", 14, Math.min(y, 270));
+    doc.line(55, Math.min(y, 270), 190, Math.min(y, 270));
+
+    doc.save(`Resumen_Chileria_${f}.pdf`);
+  }
+
+  // ====== UI eventos ======
+  $("#btnAgregar").addEventListener("click", agregar);
+
+  $("#fecha").addEventListener("change", ()=>{
+    load();
+    render();
+  });
+
+  $("#btnLimpiar").addEventListener("click", limpiarDia);
+  $("#btnPDF").addEventListener("click", pdf);
+
+  $("#btnModo").addEventListener("click", ()=>{
+    const mode = getMode();
+    if(mode === "admin"){
+      // volver a operador sin PIN
+      setMode("operador");
+    } else {
+      openPinModal();
+    }
+  });
+
+  $("#btnPinCancelar").addEventListener("click", closePinModal);
+  $("#btnPinOk").addEventListener("click", tryAdminPin);
+  $("#pinInput").addEventListener("keydown", (e)=>{ if(e.key==="Enter") tryAdminPin(); });
+  $("#modalBack").addEventListener("click", (e)=>{ if(e.target.id==="modalBack") closePinModal(); });
+
+  // ====== Init ======
+  $("#fecha").value = today();
+  // ordenar por created_at si existiera
+  load();
+  ventas.sort((a,b)=> (b.created_at||0)-(a.created_at||0));
+  applyModeUI();
+  render();
+
+  // Exponer para onclick cards/table
+  window.eliminar = eliminar;
+</script>
 </body>
 </html>
