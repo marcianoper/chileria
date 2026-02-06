@@ -1,0 +1,282 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Chilería — Central</title>
+
+  <style>
+    :root{
+      --brand:#b91c1c;      /* rojo principal */
+      --brand2:#dc2626;     /* rojo secundario */
+      --bg:#f7f7f7;
+      --card:#ffffff;
+      --ink:#111827;
+      --muted:#6b7280;
+      --line:#e5e7eb;
+      --shadow:0 18px 50px rgba(0,0,0,.12);
+      --shadow2:0 10px 24px rgba(0,0,0,.10);
+      --r:18px;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
+      background:
+        radial-gradient(1000px 420px at 20% -10%, rgba(220,38,38,.18), transparent 55%),
+        radial-gradient(900px 420px at 100% 10%, rgba(185,28,28,.16), transparent 55%),
+        var(--bg);
+      color:var(--ink);
+    }
+    a{color:inherit}
+    .wrap{max-width:1040px;margin:0 auto;padding:0 16px}
+
+    /* Header */
+    header{
+      position:sticky; top:0; z-index:20;
+      backdrop-filter:saturate(140%) blur(10px);
+      background:rgba(247,247,247,.8);
+      border-bottom:1px solid rgba(229,231,235,.8);
+    }
+    .topbar{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:14px;
+      padding:14px 0;
+    }
+    .brand{
+      display:flex; align-items:center; gap:12px;
+    }
+    .brandTitle{
+      display:flex; flex-direction:column; line-height:1.1;
+    }
+    .brandTitle b{font-size:16px; letter-spacing:.2px}
+    .brandTitle span{font-size:12px; color:var(--muted); font-weight:800; margin-top:4px}
+
+    .search{
+      flex:1;
+      display:flex;
+      justify-content:center;
+    }
+    .searchBox{
+      width:min(520px, 100%);
+      display:flex;
+      gap:10px;
+      align-items:center;
+      background:rgba(255,255,255,.9);
+      border:1px solid var(--line);
+      border-radius:16px;
+      padding:10px 12px;
+      box-shadow:0 8px 18px rgba(0,0,0,.06);
+    }
+    .searchBox input{
+      width:100%;
+      border:none;
+      outline:none;
+      background:transparent;
+      font-size:14px;
+      font-weight:800;
+      color:var(--ink);
+    }
+    .chip{
+      display:inline-flex;
+      align-items:center;
+      padding:8px 12px;
+      border-radius:999px;
+      background:rgba(185,28,28,.12);
+      color:var(--brand);
+      font-weight:1000;
+      font-size:12px;
+      white-space:nowrap;
+    }
+
+    /* Hero */
+    .hero{ padding:18px 0 10px; }
+    .heroCard{
+      background:linear-gradient(135deg,var(--brand),var(--brand2));
+      color:#fff;
+      border-radius:22px;
+      padding:18px;
+      box-shadow:var(--shadow);
+    }
+    .heroCard h1{
+      margin:0;
+      font-size:22px;
+      font-weight:1000;
+    }
+    .heroCard p{
+      margin:10px 0 0;
+      font-size:13px;
+      font-weight:700;
+      opacity:.95;
+      max-width:60ch;
+    }
+
+    /* Cards */
+    main{padding:12px 0 26px}
+    .grid{
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:16px;
+      margin-top:16px;
+    }
+    @media (max-width:900px){ .grid{ grid-template-columns:1fr; } }
+
+    .card{
+      background:var(--card);
+      border-radius:22px;
+      box-shadow:var(--shadow2);
+      border:1px solid rgba(0,0,0,.06);
+      padding:16px;
+      transition: transform .18s ease, box-shadow .18s ease;
+    }
+    .card:hover{
+      transform: translateY(-2px);
+      box-shadow:0 18px 48px rgba(0,0,0,.16);
+    }
+    .icon{
+      width:44px;height:44px;border-radius:16px;
+      display:grid; place-items:center;
+      color:#fff; font-size:20px;
+      font-weight:1000;
+      background:linear-gradient(135deg,var(--brand),var(--brand2));
+      box-shadow:0 12px 22px rgba(0,0,0,.25);
+    }
+    .card h2{
+      margin:10px 0 0;
+      font-size:16px;
+      font-weight:1000;
+    }
+    .desc{
+      margin-top:8px;
+      color:var(--muted);
+      font-size:13px;
+      font-weight:800;
+    }
+    .btnRow{
+      margin-top:14px;
+      display:flex;
+      gap:10px;
+    }
+    .btn{
+      flex:1;
+      text-align:center;
+      padding:12px 14px;
+      background:linear-gradient(135deg,var(--brand),var(--brand2));
+      color:#fff;
+      text-decoration:none;
+      font-weight:1000;
+      border-radius:16px;
+      box-shadow:0 10px 20px rgba(185,28,28,.25);
+    }
+    .btn.secondary{
+      background:#111827;
+      box-shadow:0 10px 20px rgba(0,0,0,.25);
+    }
+
+    footer{
+      text-align:center;
+      color:var(--muted);
+      font-size:12px;
+      font-weight:800;
+      padding:14px 0 28px;
+    }
+    .hide{display:none!important}
+  </style>
+</head>
+
+<body>
+
+<header>
+  <div class="wrap">
+    <div class="topbar">
+      <div class="brand">
+        <div class="brandTitle">
+          <b>🌶️ Chilería — Central</b>
+          <span>Panel operativo y financiero</span>
+        </div>
+      </div>
+
+      <div class="search">
+        <div class="searchBox">
+          <input id="q" type="text" placeholder="Buscar módulo… (ventas, balance)" />
+          <span class="chip">Ctrl / ⌘ + K</span>
+        </div>
+      </div>
+
+      <span class="chip">Modo operación</span>
+    </div>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="wrap">
+    <div class="heroCard">
+      <h1>Todo el control de la chilería, en un solo lugar.</h1>
+      <p>
+        Ventas diarias, compras, egresos y utilidad.
+        Diseñado para operar rápido y tomar decisiones claras.
+      </p>
+    </div>
+  </div>
+</section>
+
+<main class="wrap">
+  <div class="grid" id="cards">
+
+    <section class="card" data-key="chileria ventas mostrador operacion">
+      <div class="icon">🌶️</div>
+      <h2>Chilería — Operación</h2>
+      <div class="desc">
+        Registro diario de ventas por kilo, gramos y precio.
+      </div>
+      <div class="btnRow">
+        <a class="btn" href="https://marcianoper.github.io/chileria/">Entrar</a>
+      </div>
+    </section>
+
+    <section class="card" data-key="balance ingresos egresos utilidad contabilidad">
+      <div class="icon">📊</div>
+      <h2>Balance General</h2>
+      <div class="desc">
+        Ingresos, egresos, compras y ganancia neta.
+      </div>
+      <div class="btnRow">
+        <a class="btn" href="https://marcianoper.github.io/balance/">Entrar</a>
+      </div>
+    </section>
+
+  </div>
+</main>
+
+<footer>
+  Chilería Central · Control real del negocio · <span style="color:#b91c1c;font-weight:1000;">Marciano mode 🔥</span>
+</footer>
+
+<script>
+  const q = document.getElementById('q');
+  const cards = Array.from(document.querySelectorAll('#cards .card'));
+
+  function filterCards(){
+    const t = (q.value || '').toLowerCase().trim();
+    cards.forEach(c=>{
+      const k = (c.getAttribute('data-key')||'').toLowerCase();
+      c.classList.toggle('hide', t && !k.includes(t));
+    });
+  }
+  q.addEventListener('input', filterCards);
+
+  window.addEventListener('keydown', e=>{
+    const isMac = navigator.platform.toLowerCase().includes('mac');
+    if((isMac?e.metaKey:e.ctrlKey) && e.key.toLowerCase()==='k'){
+      e.preventDefault(); q.focus(); q.select();
+    }
+    if(e.key==='Escape'){
+      q.value=''; filterCards(); q.blur();
+    }
+  });
+</script>
+
+</body>
+</html>
